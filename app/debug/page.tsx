@@ -84,7 +84,7 @@ export default function DebugPage() {
       <h2>如果仍然有问题</h2>
       <p>请检查：</p>
       <ul>
-        <li>Node.js版本是否 >= 18.17.0</li>
+        <li>Node.js版本是否 &gt;= 18.17.0</li>
         <li>是否安装了所有依赖: <code>npm install</code></li>
         <li>端口3000是否被占用</li>
         <li>防火墙设置是否阻止了本地连接</li>
