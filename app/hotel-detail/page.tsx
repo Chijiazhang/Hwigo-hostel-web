@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, Suspense } from "react";
 import { motion } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import {
@@ -400,7 +400,7 @@ function priceForDate(base: number, d: Date) {
   return Math.round(p);
 }
 
-export default function HotelDetailPage() {
+function HotelDetailContent() {
   const searchParams = useSearchParams();
   const hotelId = searchParams.get('id') || 'madrid-1';
   
@@ -641,5 +641,13 @@ export default function HotelDetailPage() {
         <div className="mx-auto max-w-6xl px-4 text-xs text-gray-500">© {new Date().getFullYear()} Hwigo Hostel</div>
       </footer>
     </div>
+  );
+}
+
+export default function HotelDetailPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">加载中...</div>}>
+      <HotelDetailContent />
+    </Suspense>
   );
 }

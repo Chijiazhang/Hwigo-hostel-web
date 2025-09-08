@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Sparkles, MapPin, ArrowUpDown, Star } from "lucide-react";
@@ -208,7 +208,7 @@ function totalPrice(hotel: any, nights: string[]) {
   return nights.reduce((acc, d) => acc + (hotel.prices[d] || 0), 0);
 }
 
-export default function SearchResultsPage() {
+function SearchResultsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isAuthed, setIsAuthed] = useState(false);
@@ -404,5 +404,13 @@ export default function SearchResultsPage() {
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function SearchResultsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">加载中...</div>}>
+      <SearchResultsContent />
+    </Suspense>
   );
 }

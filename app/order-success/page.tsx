@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { motion } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import {
@@ -39,7 +39,7 @@ function generateOrderNumber() {
 }
 
 // —— 页面组件 ——
-export default function OrderSuccessPage() {
+function OrderSuccessContent() {
   const searchParams = useSearchParams();
   
   // 从URL参数获取订单信息
@@ -292,5 +292,13 @@ export default function OrderSuccessPage() {
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function OrderSuccessPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">加载中...</div>}>
+      <OrderSuccessContent />
+    </Suspense>
   );
 }

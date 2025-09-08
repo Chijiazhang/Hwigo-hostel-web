@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, Suspense } from "react";
 import { motion } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import {
@@ -69,7 +69,7 @@ function validatePhoneNumber(phone: string, countryCode: string): string {
 }
 
 // —— 页面组件 ——
-export default function CheckoutPage() {
+function CheckoutContent() {
   const searchParams = useSearchParams();
   
   // 从URL参数获取预订信息
@@ -408,5 +408,13 @@ export default function CheckoutPage() {
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">加载中...</div>}>
+      <CheckoutContent />
+    </Suspense>
   );
 }
