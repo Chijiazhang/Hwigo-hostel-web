@@ -21,7 +21,7 @@ import { BirdIcon } from "@/components/ui/bird-icon";
 // —— 工具函数 ——
 function parseYmd(s: string) {
   if (!s) return null;
-  const t = s.replaceAll("/", "-");
+  const t = s.replace(/\//g, "-");
   const [y, m, d] = t.split("-").map(Number);
   return new Date(y, m - 1, d);
 }
@@ -115,7 +115,7 @@ export default function CheckoutPage() {
       /.+@.+\..+/.test(email) &&
       phone.trim().length > 0 &&
       phoneValidation === "" &&
-      cardNo.replaceAll(" ", "").length >= 12 &&
+      cardNo.replace(/\s/g, "").length >= 12 &&
       /^(0[1-9]|1[0-2])\/\d{2}$/.test(exp) &&
       /\d{3,4}/.test(cvc) &&
       agree &&

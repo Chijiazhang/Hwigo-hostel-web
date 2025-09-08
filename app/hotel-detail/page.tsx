@@ -29,7 +29,7 @@ function toDateStr(d: Date) {
   return `${y}-${m}-${dd}`;
 }
 function parseYmd(s: string) {
-  const t = s.replaceAll("/", "-");
+  const t = s.replace(/\//g, "-");
   const [y, m, d] = t.split("-").map(Number);
   return new Date(y, (m as number) - 1, d);
 }
