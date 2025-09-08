@@ -371,7 +371,7 @@ export default function SearchResultsPage() {
                         <div className="mt-3 flex flex-wrap gap-2">
                           {nights.map((night) => (
                             <span key={night} className="text-xs bg-gray-100 px-2 py-1 rounded">
-                              {new Date(night).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })}: €{hotel.prices[night] || '暂无'}
+                              {new Date(night).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })}: €{(hotel.prices as any)[night] || '暂无'}
                             </span>
                           ))}
                         </div>
