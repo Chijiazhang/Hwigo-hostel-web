@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
+    "@swc/helpers": "^0.5.0",
     "@types/react-datepicker": "^6.2.0",
     "autoprefixer": "^10.4.16",
     "class-variance-authority": "^0.7.1",
