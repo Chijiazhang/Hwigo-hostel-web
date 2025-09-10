@@ -147,6 +147,19 @@ export function FavoriteProvider({ children }: { children: ReactNode }) {
 export function useFavorites() {
   const context = useContext(FavoriteContext);
   if (context === undefined) {
+    // 在服务端渲染时返回默认值，避免错误
+    if (typeof window === 'undefined') {
+      return {
+        isLoggedIn: false,
+        user: null,
+        setLoggedIn: () => {},
+        logout: () => {},
+        favorites: [],
+        addToFavorites: () => {},
+        removeFromFavorites: () => {},
+        isFavorite: () => false,
+      };
+    }
     throw new Error('useFavorites must be used within a FavoriteProvider');
   }
   return context;
