@@ -3,17 +3,40 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Sparkles, Mail, Lock, User } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { BirdIcon } from "@/components/ui/bird-icon";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { BirdIcon } from "../../components/ui/bird-icon";
+import { useFavorites, UserInfo } from "../../contexts/FavoriteContext";
+
+// 强制动态渲染
+export const dynamic = 'force-dynamic';
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { setLoggedIn } = useFavorites();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    alert(`登录信息：\n邮箱：${email}\n密码：${password}`);
+    
+    // 简单的登录验证（实际项目中应该连接后端API）
+    if (email && password) {
+      // 创建用户信息（实际项目中应该从API获取）
+      const userInfo: UserInfo = {
+        id: Date.now().toString(),
+        nickname: email.split('@')[0], // 使用邮箱前缀作为昵称
+        email: email,
+        avatar: `https://i.pravatar.cc/32?img=${Math.floor(Math.random() * 70)}`
+      };
+      
+      // 设置登录状态和用户信息
+      setLoggedIn(true, userInfo);
+      alert('登录成功！');
+      // 跳转到首页
+      window.location.href = '/';
+    } else {
+      alert('请填写完整的登录信息');
+    }
   };
 
   return (

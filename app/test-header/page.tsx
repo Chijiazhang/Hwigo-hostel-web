@@ -1,7 +1,10 @@
 "use client";
 
-import Header from "@/components/Header";
-import { useFavorites } from "@/contexts/FavoriteContext";
+import Header from "../../components/Header";
+import { useFavorites } from "../../contexts/FavoriteContext";
+
+// 强制动态渲染
+export const dynamic = 'force-dynamic';
 
 export default function TestHeaderPage() {
   const { isLoggedIn, user } = useFavorites();

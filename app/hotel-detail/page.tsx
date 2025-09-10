@@ -15,11 +15,16 @@ import {
   BedDouble,
   ChevronLeft,
   ChevronRight,
-  Calendar
+  Calendar,
+  Heart
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { BirdIcon } from "@/components/ui/bird-icon";
+import { Card, CardContent } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { BirdIcon } from "../../components/ui/bird-icon";
+import { useFavorites } from "../../contexts/FavoriteContext";
+
+// 强制动态渲染
+export const dynamic = 'force-dynamic';
 
 // —— 工具函数 ——
 function toDateStr(d: Date) {
@@ -412,6 +417,34 @@ function HotelDetailContent() {
   // 获取酒店数据
   const HOTEL = HOTELS_DATA[hotelId as keyof typeof HOTELS_DATA] || HOTELS_DATA['madrid-1'];
   
+  // 收藏功能
+  const { addToFavorites, removeFromFavorites, isFavorite, isLoggedIn } = useFavorites();
+  
+  // 处理收藏操作
+  const handleFavoriteToggle = () => {
+    if (!isLoggedIn) {
+      alert('请先登录后再收藏旅馆');
+      return;
+    }
+    
+    const favoriteItem = {
+      id: HOTEL.id,
+      name: HOTEL.name,
+      location: HOTEL.location,
+      cover: HOTEL.gallery[0],
+      rating: HOTEL.rating,
+      reviews: HOTEL.reviews,
+      price: HOTEL.rooms[0].base,
+      amenities: HOTEL.amenities.map(a => a.label)
+    };
+    
+    if (isFavorite(HOTEL.id)) {
+      removeFromFavorites(HOTEL.id);
+    } else {
+      addToFavorites(favoriteItem);
+    }
+  };
+  
   // 图集
   const [idx, setIdx] = useState(0);
   const curImg = HOTEL.gallery[idx];
@@ -519,9 +552,28 @@ function HotelDetailContent() {
         <section className="mt-6 grid lg:grid-cols-[1fr,380px] gap-6">
           {/* 左侧：信息 */}
           <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold">{HOTEL.name}</h1>
-            <p className="mt-1 text-sm text-gray-600 flex items-center gap-1"><MapPin className="size-4"/> {HOTEL.location}</p>
-            <p className="mt-1 text-amber-600 inline-flex items-center gap-1"><Star className="size-4"/> {HOTEL.rating.toFixed(1)} <span className="text-gray-500 text-xs">（{HOTEL.reviews} 条评价）</span></p>
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <h1 className="text-2xl md:text-3xl font-extrabold">{HOTEL.name}</h1>
+                <p className="mt-1 text-sm text-gray-600 flex items-center gap-1"><MapPin className="size-4"/> {HOTEL.location}</p>
+                <p className="mt-1 text-amber-600 inline-flex items-center gap-1"><Star className="size-4"/> {HOTEL.rating.toFixed(1)} <span className="text-gray-500 text-xs">（{HOTEL.reviews} 条评价）</span></p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleFavoriteToggle}
+                className={`ml-4 flex items-center gap-2 ${
+                  isFavorite(HOTEL.id) 
+                    ? 'text-red-500 border-red-200 bg-red-50 hover:bg-red-100' 
+                    : 'text-gray-600 hover:text-red-500'
+                }`}
+              >
+                <Heart 
+                  className={`size-4 ${isFavorite(HOTEL.id) ? 'fill-current' : ''}`} 
+                />
+                {isFavorite(HOTEL.id) ? '已收藏' : '收藏'}
+              </Button>
+            </div>
 
             {/* 设施 */}
             <h2 className="mt-6 font-semibold">设施</h2>

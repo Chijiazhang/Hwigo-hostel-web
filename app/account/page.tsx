@@ -1,6 +1,9 @@
 "use client"
 
 import React, { useState, useEffect } from "react";
+
+// 强制动态渲染
+export const dynamic = 'force-dynamic';
 import {
   Sparkles,
   User as UserIcon,

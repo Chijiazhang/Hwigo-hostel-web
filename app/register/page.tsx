@@ -14,9 +14,13 @@ import {
   CheckCircle2,
   Loader2
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { BirdIcon } from "@/components/ui/bird-icon";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { BirdIcon } from "../../components/ui/bird-icon";
+import { useFavorites, UserInfo } from "../../contexts/FavoriteContext";
+
+// 强制动态渲染
+export const dynamic = 'force-dynamic';
 
 // 密码验证工具
 const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -57,12 +61,16 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [captcha, setCaptcha] = useState("");
   const [agree, setAgree] = useState(false);
+  
+  const { setLoggedIn } = useFavorites();
 
   // UI 状态
   const [showPw, setShowPw] = useState(false);
   const [showPw2, setShowPw2] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [sendingCode, setSendingCode] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [successMessage, setSuccessMessage] = useState("");
 
   // 验证码倒计时
   const [leftSec, setLeftSec] = useState(0);
@@ -106,13 +114,58 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateOnSubmit()) return;
+    
     try {
       setLoading(true);
-      // 这里对接注册 API
-      // await fetch('/api/register', { method:'POST', body: JSON.stringify({ nickname, email, password, captcha }) })
-      alert(
-        `注册信息：\n昵称：${nickname}\n邮箱：${email}\n密码长度：${password.length}\n验证码：${captcha}`
-      );
+      setErrors({});
+      setSuccessMessage("");
+
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          nickname, 
+          email, 
+          password, 
+          captcha 
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setSuccessMessage(result.message);
+        
+        // 注册成功后自动登录
+        const userInfo: UserInfo = {
+          id: result.user.id,
+          nickname: result.user.nickname,
+          email: result.user.email,
+          avatar: `https://i.pravatar.cc/32?img=${Math.floor(Math.random() * 70)}`
+        };
+        
+        setLoggedIn(true, userInfo);
+        
+        // 清空表单
+        setNickname("");
+        setEmail("");
+        setPassword("");
+        setConfirmPassword("");
+        setCaptcha("");
+        setAgree(false);
+        
+        // 3秒后跳转到首页
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 3000);
+      } else {
+        setErrors({ submit: result.message });
+      }
+    } catch (error) {
+      console.error('注册失败:', error);
+      setErrors({ submit: '网络错误，请检查网络连接后重试' });
     } finally {
       setLoading(false);
     }
@@ -128,9 +181,35 @@ export default function RegisterPage() {
       setErrors((e) => ({ ...e, email: "请先填写有效邮箱" }));
       return;
     }
-    // 调用发送验证码 API
-    // await fetch('/api/send-code', { method:'POST', body: JSON.stringify({ email }) })
-    setLeftSec(60);
+
+    try {
+      setSendingCode(true);
+      setErrors((e) => ({ ...e, captcha: "" }));
+
+      const response = await fetch('/api/send-verification-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setLeftSec(60);
+        setSuccessMessage(result.message);
+        // 清除之前的错误信息
+        setErrors((e) => ({ ...e, captcha: "" }));
+      } else {
+        setErrors((e) => ({ ...e, captcha: result.message }));
+      }
+    } catch (error) {
+      console.error('发送验证码失败:', error);
+      setErrors((e) => ({ ...e, captcha: '网络错误，请稍后重试' }));
+    } finally {
+      setSendingCode(false);
+    }
   };
 
   return (
@@ -165,6 +244,26 @@ export default function RegisterPage() {
               <p className="text-center text-sm text-gray-600 mt-1">注册你的青旅账户</p>
             </CardHeader>
             <CardContent>
+              {/* 成功消息 */}
+              {successMessage && (
+                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl">
+                  <p className="text-sm text-green-700 flex items-center gap-2">
+                    <CheckCircle2 className="size-4"/>
+                    {successMessage}
+                  </p>
+                </div>
+              )}
+
+              {/* 错误消息 */}
+              {errors.submit && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl">
+                  <p className="text-sm text-red-700 flex items-center gap-2">
+                    <AlertCircle className="size-4"/>
+                    {errors.submit}
+                  </p>
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* 昵称 */}
                 <div>
@@ -298,17 +397,27 @@ export default function RegisterPage() {
                       type="text"
                       value={captcha}
                       onChange={(e) => setCaptcha(e.target.value)}
-                      placeholder="输入邮箱收到的 6 位验证码"
+                      placeholder="输入邮箱收到的 4 位验证码"
                       className="w-full bg-transparent outline-none"
+                      maxLength={4}
                     />
                     <Button
                       type="button"
                       variant="secondary"
                       className="text-xs"
                       onClick={onSendCaptcha}
-                      disabled={leftSec>0}
+                      disabled={leftSec>0 || sendingCode}
                     >
-                      {leftSec>0 ? `${leftSec}s 后重发` : '获取验证码'}
+                      {sendingCode ? (
+                        <span className="inline-flex items-center gap-1">
+                          <Loader2 className="size-3 animate-spin"/>
+                          发送中
+                        </span>
+                      ) : leftSec>0 ? (
+                        `${leftSec}s 后重发`
+                      ) : (
+                        '获取验证码'
+                      )}
                     </Button>
                   </div>
                   {errors.captcha && (
