@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/ca
 import { Button } from "../../components/ui/button";
 import { BirdIcon } from "../../components/ui/bird-icon";
 import { useFavorites, UserInfo } from "../../contexts/FavoriteContext";
+import { getGoogleAuthUrl } from "../../lib/googleAuth";
 
 // 强制动态渲染
 export const dynamic = 'force-dynamic';
@@ -63,6 +64,38 @@ export default function RegisterPage() {
   const [agree, setAgree] = useState(false);
   
   const { setLoggedIn } = useFavorites();
+
+  // 处理 Google OAuth 回调结果
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const googleSuccess = urlParams.get('google_success');
+    const googleEmail = urlParams.get('email');
+    const googleName = urlParams.get('name');
+    const googlePicture = urlParams.get('picture');
+    const error = urlParams.get('error');
+
+    if (error) {
+      setErrors({ general: `Google 登录失败: ${error}` });
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return;
+    }
+
+    if (googleSuccess === 'true' && googleEmail && googleName) {
+      setEmail(googleEmail);
+      const userInfo: UserInfo = {
+        id: Date.now().toString(),
+        nickname: googleName,
+        email: googleEmail,
+        avatar: googlePicture || undefined
+      };
+      setLoggedIn(true, userInfo);
+      setSuccessMessage('Google 账户注册成功！');
+      window.history.replaceState({}, document.title, window.location.pathname);
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 2000);
+    }
+  }, [setLoggedIn]);
 
   // UI 状态
   const [showPw, setShowPw] = useState(false);
@@ -172,8 +205,13 @@ export default function RegisterPage() {
   };
 
   const handleGoogleRegister = async () => {
-    // 这里接入 Google OAuth（如 NextAuth、Firebase Auth 或自建 OAuth）
-    alert("使用 Google 账户注册（此处接入 OAuth）");
+    try {
+      const authUrl = getGoogleAuthUrl();
+      window.location.href = authUrl;
+    } catch (error) {
+      console.error('Google OAuth error:', error);
+      alert('Google 登录失败，请重试');
+    }
   };
 
   const onSendCaptcha = async () => {
